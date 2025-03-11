@@ -1,4 +1,3 @@
-
 #include "key_generation.h"
 #include <openssl/pem.h>
 #include <openssl/rand.h>
@@ -9,27 +8,29 @@
 // Generate an RSA key using EVP API
 EVP_PKEY* generate_rsa_key(int bits) {
     EVP_PKEY *pkey = NULL;
-    EVP_PKEY_CTX *ctx = EVP_PKEY_CTX_new_id(EVP_PKEY_RSA, NULL);
+    EVP_PKEY_CTX *ctx = EVP_PKEY_CTX_new_id(EVP_PKEY_RSA, NULL); // Creates a context for rsa keygen
     
     if (!ctx) {
         fprintf(stderr, "Error: Failed to create EVP_PKEY_CTX\n");
         return NULL;
     }
 
+    // Initialize the key generation context and set the key length
     if (EVP_PKEY_keygen_init(ctx) <= 0 || EVP_PKEY_CTX_set_rsa_keygen_bits(ctx, bits) <= 0) {
         fprintf(stderr, "Error: RSA key generation initialization failed\n");
         EVP_PKEY_CTX_free(ctx);
         return NULL;
     }
 
+    // Generate the RSA key pair
     if (EVP_PKEY_keygen(ctx, &pkey) <= 0) {
         fprintf(stderr, "Error: RSA key generation failed\n");
         EVP_PKEY_CTX_free(ctx);
         return NULL;
     }
 
-    EVP_PKEY_CTX_free(ctx);
-    return pkey;
+    EVP_PKEY_CTX_free(ctx); // Free the context after key generation
+    return pkey; // Return the generated key
 }
 
 // Convert EVP_PKEY to a PEM formatted string (Public Key)
@@ -39,31 +40,33 @@ char* get_public_key(EVP_PKEY *pkey) {
         return NULL;
     }
 
-    BIO *bio = BIO_new(BIO_s_mem());
+    BIO *bio = BIO_new(BIO_s_mem()); // Create a new in-memory BIO
     if (!bio) {
         fprintf(stderr, "Error: Failed to create BIO\n");
         return NULL;
     }
 
+    // Write the public key to the BIO in PEM format
     if (!PEM_write_bio_PUBKEY(bio, pkey)) {
         fprintf(stderr, "Error: Failed to write public key to BIO\n");
         BIO_free(bio);
         return NULL;
     }
 
+    // Get the number of bytes stored in the BIO
     size_t len = BIO_pending(bio);
-    char *pem_key = malloc(len + 1);
+    char *pem_key = malloc(len + 1);  // Allocate memory for the PEM string
     if (!pem_key) {
         fprintf(stderr, "Error: Memory allocation failed for public key\n");
         BIO_free(bio);
         return NULL;
     }
 
-    BIO_read(bio, pem_key, len);
-    pem_key[len] = '\0';
+    BIO_read(bio, pem_key, len);  // Read the PEM key from BIO into memory
+    pem_key[len] = '\0'; 
 
-    BIO_free(bio);
-    return pem_key;
+    BIO_free(bio); 
+    return pem_key; 
 }
 
 // Convert EVP_PKEY to an encrypted PEM formatted string (Private Key)
@@ -73,12 +76,13 @@ char* get_encrypted_private_key(EVP_PKEY *pkey, const char *passphrase) {
         return NULL;
     }
 
-    BIO *bio = BIO_new(BIO_s_mem());
+    BIO *bio = BIO_new(BIO_s_mem()); // Create a new in-memory BIO
     if (!bio) {
         fprintf(stderr, "Error: Failed to create BIO\n");
         return NULL;
     }
 
+    // Write the private key to the BIO in encrypted PEM format using AES-256-CBC
     if (!PEM_write_bio_PrivateKey(bio, pkey, EVP_aes_256_cbc(), 
                                   (unsigned char*)passphrase, strlen(passphrase), NULL, NULL)) {
         fprintf(stderr, "Error: Failed to write encrypted private key to BIO\n");
@@ -86,15 +90,16 @@ char* get_encrypted_private_key(EVP_PKEY *pkey, const char *passphrase) {
         return NULL;
     }
 
+    // Get the number of bytes stored in the BIO
     size_t len = BIO_pending(bio);
-    char *pem_key = malloc(len + 1);
+    char *pem_key = malloc(len + 1); // Allocate memory for the PEM string
     if (!pem_key) {
         fprintf(stderr, "Error: Memory allocation failed for private key\n");
         BIO_free(bio);
         return NULL;
     }
 
-    BIO_read(bio, pem_key, len);
+    BIO_read(bio, pem_key, len); // Read the encrypted private key from BIO into memory
     pem_key[len] = '\0';
 
     BIO_free(bio);
@@ -124,7 +129,8 @@ char* generate_spines_internal_private_key() {
     if (!key) return NULL;
 
     // assuming using a passphrase, NEED TO ASK
-    char *passphrase = "default_passphrase"; 
+    // i dont think a passphrase is right for this, should i use an existing key ?
+    char *passphrase = "passphrase"; 
     char* enc_priv_key = get_encrypted_private_key(key, passphrase);
     free_rsa_key(key);
     return enc_priv_key;

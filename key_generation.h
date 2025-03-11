@@ -5,13 +5,6 @@
 #include <openssl/evp.h>
 #include <stdint.h>
 
-// RSA key structure
-typedef struct {
-    int id;
-    int size;
-    EVP_PKEY *pkey;
-} rsa_key_t;
-
 // Functions for key generation
 EVP_PKEY *generate_rsa_key(int bits);
 void free_rsa_key(EVP_PKEY *pkey);
