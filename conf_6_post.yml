@@ -1,0 +1,331 @@
+configuration_id: 1 # monotonically increasing ID
+tolerated_byzantine_faults: 1 # F parameter
+tolerated_unavailable_replicas: 1 # K parameter
+
+# service_keys:
+#   - sm_threshold_public_key: XXXX
+#   - prime_threshold_public_key: XXXX
+
+sites:
+  - name: control_center1
+
+    type: CONTROL_CENTER
+
+    hosts:
+      - name: goldenrod1
+        ip: 10.220.1.1
+        permanent_key_location: "prime/bin/tpm_keys/tpm_private1.key"
+        runs_spines_internal: yes
+        runs_spines_external: yes
+        # spines_internal_public_key: XXXX
+        # encrypted_spines_internal_private_key: XXXX
+        # spines_external_public_key: XXXX
+        # encrypted_spines_external_private_key: XXXX
+      - name: goldenrod2
+        ip: 10.220.1.2
+        permanent_key_location: "prime/bin/tpm_keys/tpm_private2.key"
+        runs_spines_internal: yes
+        runs_spines_external: yes
+        # spines_internal_public_key: XXXX
+        # encrypted_spines_internal_private_key: XXXX
+        # spines_external_public_key: XXXX
+        # encrypted_spines_external_private_key: XXXX
+      - name: goldenrod3
+        ip: 10.220.1.3
+        permanent_key_location: "prime/bin/tpm_keys/tpm_private3.key"
+        runs_spines_internal: yes
+        runs_spines_external: yes
+        # spines_internal_public_key: XXXX
+        # encrypted_spines_internal_private_key: XXXX
+        # spines_external_public_key: XXXX
+        # encrypted_spines_external_private_key: XXXX
+      - name: goldenrod4
+        ip: 10.220.1.4
+        permanent_key_location: "prime/bin/tpm_keys/tpm_private4.key"
+        runs_spines_internal: yes
+        runs_spines_external: yes
+        # spines_internal_public_key: XXXX
+        # encrypted_spines_internal_private_key: XXXX
+        # spines_external_public_key: XXXX
+        # encrypted_spines_external_private_key: XXXX
+      - name: goldenrod5
+        ip: 10.220.1.5
+        permanent_key_location: "prime/bin/tpm_keys/tpm_private5.key"
+        runs_spines_internal: yes
+        runs_spines_external: yes
+        # spines_internal_public_key: XXXX
+        # encrypted_spines_internal_private_key: XXXX
+        # spines_external_public_key: XXXX
+        # encrypted_spines_external_private_key: XXXX
+      - name: goldenrod6
+        ip: 10.220.1.6
+        permanent_key_location: "prime/bin/tpm_keys/tpm_private6.key"
+        runs_spines_internal: yes
+        runs_spines_external: yes
+        # spines_internal_public_key: XXXX
+        # encrypted_spines_internal_private_key: XXXX
+        # spines_external_public_key: XXXX
+        # encrypted_spines_external_private_key: XXXX
+
+    replicas:
+      - instance_id: 1
+        host: goldenrod1
+        spines_internal_daemon: goldenrod1
+        spines_external_daemon: goldenrod1
+        # tpm_public_key: XXXX
+        # instance_public_key: XXXX
+        # encrypted_instance_private_key: XXXX
+        # encrypted_prime_threshold_key_share: XXXX
+        # encrypted_sm_threshold_key_share: XXXX
+
+      - instance_id: 2
+        host: goldenrod2
+        spines_internal_daemon: goldenrod2
+        spines_external_daemon: goldenrod2
+        # tpm_public_key: XXXX
+        # instance_public_key: XXXX
+        # encrypted_instance_private_key: XXXX
+        # encrypted_prime_threshold_key_share: XXXX
+        # encrypted_sm_threshold_key_share: XXXX
+
+      - instance_id: 3
+        host: goldenrod3
+        spines_internal_daemon: goldenrod3
+        spines_external_daemon: goldenrod3
+        # tpm_public_key: XXXX
+        # instance_public_key: XXXX
+        # encrypted_instance_private_key: XXXX
+        # encrypted_prime_threshold_key_share: XXXX
+        # encrypted_sm_threshold_key_share: XXXX
+
+      - instance_id: 4
+        host: goldenrod4
+        spines_internal_daemon: goldenrod4
+        spines_external_daemon: goldenrod4
+        # tpm_public_key: XXXX
+        # instance_public_key: XXXX
+        # encrypted_instance_private_key: XXXX
+        # encrypted_prime_threshold_key_share: XXXX
+        # encrypted_sm_threshold_key_share: XXXX
+
+      - instance_id: 5
+        host: goldenrod5
+        spines_internal_daemon: goldenrod5
+        spines_external_daemon: goldenrod5
+        # tpm_public_key: XXXX
+        # instance_public_key: XXXX
+        # encrypted_instance_private_key: XXXX
+        # encrypted_prime_threshold_key_share: XXXX
+        # encrypted_sm_threshold_key_share: XXXX
+
+      - instance_id: 6
+        host: goldenrod6
+        spines_internal_daemon: goldenrod6
+        spines_external_daemon: goldenrod6
+        # tpm_public_key: XXXX
+        # instance_public_key: XXXX
+        # encrypted_instance_private_key: XXXX
+        # encrypted_prime_threshold_key_share: XXXX
+        # encrypted_sm_threshold_key_share: XXXX
+
+  - name: plc_site
+
+    type: CLIENT
+
+    hosts:
+      - name: goldenrod10
+        ip: 10.220.10.1
+        runs_spines_external: yes
+        # spines_external_public_key: XXXX
+        # encrypted_spines_external_private_key: XXXX
+
+  - name: hmi_site
+
+    type: CLIENT
+
+    hosts:
+      - name: goldenrod11
+        ip: 10.220.11.1
+        runs_spines_external: yes
+        # spines_external_public_key: XXXX
+        # encrypted_spines_external_private_key: XXXX
+
+# How to generate Spines topology based on the above configuration:
+# spines_internal:
+#   - This is a clique of all spines_internal_daemons
+# spines_external:
+#   - There is clique of all spines_external_daemons associated with replicas
+#   - Each "replica" spines_external_daemon is connected to each "client" spines_external_daemon
+#   - Note that client daemons are not connected to each other
+
+#spines_internal_topology:
+#  hosts:
+#    - name: goldenrod1
+#      id: 1
+#    - name: goldenrod2
+#      id: 2
+#    - name: goldenrod3
+#      id: 3
+#    - name: goldenrod4
+#      id: 4
+#    - name: goldenrod5
+#      id: 5
+#    - name: goldenrod6
+#      id: 6
+#
+#  edges:
+#    - id1: 1
+#      id2: 2
+#      cost: 100
+#    - id1: 1
+#      id2: 3
+#      cost: 100
+#    - id1: 1
+#      id2: 4
+#      cost: 100
+#    - id1: 1
+#      id2: 5
+#      cost: 100
+#    - id1: 1
+#      id2: 6
+#      cost: 100
+#
+#    - id1: 2
+#      id2: 3
+#      cost: 100
+#    - id1: 2
+#      id2: 4
+#      cost: 100
+#    - id1: 2
+#      id2: 5
+#      cost: 100
+#    - id1: 2
+#      id2: 6
+#      cost: 100
+#
+#    - id1: 3
+#      id2: 4
+#      cost: 100
+#    - id1: 3
+#      id2: 5
+#      cost: 100
+#    - id1: 3
+#      id2: 6
+#      cost: 100
+#
+#    - id1: 4
+#      id2: 5
+#      cost: 100
+#    - id1: 4
+#      id2: 6
+#      cost: 100
+#
+#    - id1: 5
+#      id2: 6
+#      cost: 100
+#
+#spines_external_topology:
+#  hosts:
+#    - name: goldenrod1
+#      id: 1
+#    - name: goldenrod2
+#      id: 2
+#    - name: goldenrod3
+#      id: 3
+#    - name: goldenrod4
+#      id: 4
+#    - name: goldenrod5
+#      id: 5
+#    - name: goldenrod6
+#      id: 6
+#    - name: goldenrod10
+#      id: 7
+#    - name: goldenrod11
+#      id: 8
+#
+#  edges:
+#    - id1: 1
+#      id2: 2
+#      cost: 100
+#    - id1: 1
+#      id2: 3
+#      cost: 100
+#    - id1: 1
+#      id2: 4
+#      cost: 100
+#    - id1: 1
+#      id2: 5
+#      cost: 100
+#    - id1: 1
+#      id2: 6
+#      cost: 100
+#    - id1: 1
+#      id2: 7
+#      cost: 100
+#    - id1: 1
+#      id2: 8
+#      cost: 100
+#
+#    - id1: 2
+#      id2: 3
+#      cost: 100
+#    - id1: 2
+#      id2: 4
+#      cost: 100
+#    - id1: 2
+#      id2: 5
+#      cost: 100
+#    - id1: 2
+#      id2: 6
+#      cost: 100
+#    - id1: 2
+#      id2: 7
+#      cost: 100
+#    - id1: 2
+#      id2: 8
+#      cost: 100
+#
+#    - id1: 3
+#      id2: 4
+#      cost: 100
+#    - id1: 3
+#      id2: 5
+#      cost: 100
+#    - id1: 3
+#      id2: 6
+#      cost: 100
+#    - id1: 3
+#      id2: 7
+#      cost: 100
+#    - id1: 3
+#      id2: 8
+#      cost: 100
+#
+#    - id1: 4
+#      id2: 5
+#      cost: 100
+#    - id1: 4
+#      id2: 6
+#      cost: 100
+#    - id1: 4
+#      id2: 7
+#      cost: 100
+#    - id1: 4
+#      id2: 8
+#      cost: 100
+#
+#    - id1: 5
+#      id2: 6
+#      cost: 100
+#    - id1: 5
+#      id2: 7
+#      cost: 100
+#    - id1: 5
+#      id2: 8
+#      cost: 100
+#    - id1: 6
+#      id2: 7
+#      cost: 100
+#    - id1: 6
+#      id2: 8
+#      cost: 100

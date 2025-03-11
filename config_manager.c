@@ -61,6 +61,7 @@ int main(int argc, char *argv[]) {
     generate_keys(cfg);
 
     // generate topology
+    generate_topology(cfg);
 
     // for debuggin
     print_config(cfg);
