@@ -11,6 +11,7 @@ static const cyaml_schema_field_t host_schema_fields[] = {
     CYAML_FIELD_STRING_PTR("name", CYAML_FLAG_POINTER, struct host, name, 0, CYAML_UNLIMITED),
     CYAML_FIELD_STRING_PTR("ip", CYAML_FLAG_POINTER, struct host, ip, 0, CYAML_UNLIMITED),
     CYAML_FIELD_STRING_PTR("permanent_key_location", CYAML_FLAG_POINTER | CYAML_FLAG_OPTIONAL, struct host, permanent_key_location, 0, CYAML_UNLIMITED),
+    CYAML_FIELD_STRING_PTR("permanent_public_key", CYAML_FLAG_POINTER | CYAML_FLAG_OPTIONAL, struct host, permanent_public_key, 0, CYAML_UNLIMITED),
     CYAML_FIELD_UINT("runs_spines_internal", CYAML_FLAG_DEFAULT | CYAML_FLAG_OPTIONAL, struct host, runs_spines_internal),
     CYAML_FIELD_UINT("runs_spines_external", CYAML_FLAG_DEFAULT | CYAML_FLAG_OPTIONAL, struct host, runs_spines_external),
     // Future fields (currently required but can be empty for now)
@@ -34,7 +35,6 @@ static const cyaml_schema_field_t replica_schema_fields[] = {
     CYAML_FIELD_STRING_PTR("spines_internal_daemon", CYAML_FLAG_POINTER, struct replica, spines_internal_daemon, 0, CYAML_UNLIMITED),
     CYAML_FIELD_STRING_PTR("spines_external_daemon", CYAML_FLAG_POINTER, struct replica, spines_external_daemon, 0, CYAML_UNLIMITED),
     // Future fields (currently required but can be empty initially)
-    CYAML_FIELD_STRING_PTR("tpm_public_key", CYAML_FLAG_POINTER | CYAML_FLAG_OPTIONAL, struct replica, tpm_public_key, 0, CYAML_UNLIMITED),
     CYAML_FIELD_STRING_PTR("instance_public_key", CYAML_FLAG_POINTER | CYAML_FLAG_OPTIONAL, struct replica, instance_public_key, 0, CYAML_UNLIMITED),
     CYAML_FIELD_STRING_PTR("encrypted_instance_private_key", CYAML_FLAG_POINTER | CYAML_FLAG_OPTIONAL, struct replica, encrypted_instance_private_key, 0, CYAML_UNLIMITED),
     CYAML_FIELD_STRING_PTR("encrypted_prime_threshold_key_share", CYAML_FLAG_POINTER | CYAML_FLAG_OPTIONAL, struct replica, encrypted_prime_threshold_key_share, 0, CYAML_UNLIMITED),
@@ -113,8 +113,8 @@ static const cyaml_schema_field_t config_schema_fields[] = {
     CYAML_FIELD_UINT("tolerated_unavailable_replicas", CYAML_FLAG_DEFAULT, struct config, tolerated_unavailable_replicas),
     CYAML_FIELD_MAPPING("service_keys", CYAML_FLAG_DEFAULT, struct config, service_keys, service_keys_schema_fields),
     CYAML_FIELD_SEQUENCE_COUNT("sites", CYAML_FLAG_POINTER, struct config, sites, sites_count, &site_schema, 0, CYAML_UNLIMITED),
-    CYAML_FIELD_MAPPING("spines_internal_topology", CYAML_FLAG_DEFAULT | CYAML_FLAG_OPTIONAL, struct config, spines_internal_topology, spines_topology_schema_fields),
-    CYAML_FIELD_MAPPING("spines_external_topology", CYAML_FLAG_DEFAULT | CYAML_FLAG_OPTIONAL, struct config, spines_external_topology, spines_topology_schema_fields),
+    // CYAML_FIELD_MAPPING("spines_internal_topology", CYAML_FLAG_DEFAULT | CYAML_FLAG_OPTIONAL, struct config, spines_internal_topology, spines_topology_schema_fields),
+    // CYAML_FIELD_MAPPING("spines_external_topology", CYAML_FLAG_DEFAULT | CYAML_FLAG_OPTIONAL, struct config, spines_external_topology, spines_topology_schema_fields),
     CYAML_FIELD_END};
 
 static const cyaml_schema_value_t config_schema = {
@@ -210,7 +210,7 @@ int generate_topology(struct config *cfg)
     if (!cfg)
     {
         fprintf(stderr, "Config structure is NULL\n");
-        return;
+        return -1;
     }
     printf("Generating topology...\n");
 
@@ -268,7 +268,7 @@ int generate_topology(struct config *cfg)
     if (!cfg->spines_internal_topology)
     {
         fprintf(stderr, "Memory allocation failed for internal topology\n");
-        return;
+        return -1;
     }
 
     cfg->spines_internal_topology->hosts_count = internal_count;
@@ -279,7 +279,7 @@ int generate_topology(struct config *cfg)
     if (!cfg->spines_internal_topology->hosts || !cfg->spines_internal_topology->edges)
     {
         fprintf(stderr, "Memory allocation failed for internal topology elements\n");
-        return;
+        return -1;
     }
 
     // Populate internal topology
@@ -323,9 +323,10 @@ int generate_topology(struct config *cfg)
 
     // Allocate memory for external topology
     cfg->spines_external_topology = malloc(sizeof(struct spines_topology));
-    if (!cfg->spines_external_topology) {
+    if (!cfg->spines_external_topology)
+    {
         fprintf(stderr, "Memory allocation failed for external topology\n");
-        return;
+        return -1;
     }
     // memset(cfg->spines_external_topology, 0, sizeof(struct spines_topology));  // Initialize to avoid garbage values
 
@@ -337,21 +338,24 @@ int generate_topology(struct config *cfg)
     if (!cfg->spines_external_topology->hosts || !cfg->spines_external_topology->edges)
     {
         fprintf(stderr, "Memory allocation failed for external topology elements\n");
-        return;
+        return -1;
     }
 
     // Populate external topology
     unsigned replica_idx = 0, client_idx = replica_count, ext_edge_idx = 0;
 
-    //for each site
-    for (unsigned i = 0; i < cfg->sites_count; i++) {
+    // for each site
+    for (unsigned i = 0; i < cfg->sites_count; i++)
+    {
         struct site *s = &cfg->sites[i];
 
         // for each replica
-        for (unsigned j = 0; j < s->replicas_count; j++) {
+        for (unsigned j = 0; j < s->replicas_count; j++)
+        {
             // if it has an external daemon
-            if (s->replicas[j].spines_external_daemon) {
-                //add it as a host
+            if (s->replicas[j].spines_external_daemon)
+            {
+                // add it as a host
                 cfg->spines_external_topology->hosts[replica_idx].id = replica_idx;
                 cfg->spines_external_topology->hosts[replica_idx].name = strdup(s->replicas[j].spines_external_daemon);
                 replica_idx++;
@@ -359,9 +363,11 @@ int generate_topology(struct config *cfg)
         }
 
         // for each host
-        for (unsigned j = 0; j < s->hosts_count; j++) {
+        for (unsigned j = 0; j < s->hosts_count; j++)
+        {
             // if the host runs spines external and is a client
-            if (s->hosts[j].runs_spines_external && s->type == CLIENT) {
+            if (s->hosts[j].runs_spines_external && s->type == CLIENT)
+            {
                 // add it as a host
                 cfg->spines_external_topology->hosts[client_idx].id = client_idx;
                 cfg->spines_external_topology->hosts[client_idx].name = strdup(s->hosts[j].name);
@@ -371,11 +377,13 @@ int generate_topology(struct config *cfg)
     }
 
     // connects each replica to each other replica
-    //for each replica
-    for (unsigned i = 0; i < replica_count; i++) {
-        //for each replica
-        for (unsigned j = i + 1; j < replica_count; j++) {
-            //add an edge
+    // for each replica
+    for (unsigned i = 0; i < replica_count; i++)
+    {
+        // for each replica
+        for (unsigned j = i + 1; j < replica_count; j++)
+        {
+            // add an edge
             cfg->spines_external_topology->edges[ext_edge_idx].id1 = i;
             cfg->spines_external_topology->edges[ext_edge_idx].id2 = j;
             cfg->spines_external_topology->edges[ext_edge_idx].cost = 1;
@@ -383,11 +391,13 @@ int generate_topology(struct config *cfg)
         }
     }
 
-    // Connect each replica to each client 
+    // Connect each replica to each client
     // for each replica
-    for (unsigned i = 0; i < replica_count; i++) {
+    for (unsigned i = 0; i < replica_count; i++)
+    {
         // for each client
-        for (unsigned j = 0; j < client_count; j++) {
+        for (unsigned j = 0; j < client_count; j++)
+        {
             // add an edge
             cfg->spines_external_topology->edges[ext_edge_idx].id1 = i;
             cfg->spines_external_topology->edges[ext_edge_idx].id2 = replica_count + j;
@@ -398,44 +408,48 @@ int generate_topology(struct config *cfg)
 
     // DEBUG PRINT
     printf("Internal topology: hosts_count=%u, edges_count=%u\n",
-        cfg->spines_internal_topology->hosts_count,
-        cfg->spines_internal_topology->edges_count);
-    
+           cfg->spines_internal_topology->hosts_count,
+           cfg->spines_internal_topology->edges_count);
+
     // Print hosts
-    for (unsigned i = 0; i < cfg->spines_internal_topology->hosts_count; i++) {
+    for (unsigned i = 0; i < cfg->spines_internal_topology->hosts_count; i++)
+    {
         printf("  Host %u: name=%s, id=%u\n",
-                i, cfg->spines_internal_topology->hosts[i].name,
-                cfg->spines_internal_topology->hosts[i].id);
+               i, cfg->spines_internal_topology->hosts[i].name,
+               cfg->spines_internal_topology->hosts[i].id);
     }
-    
+
     // Print edges
-    for (unsigned i = 0; i < cfg->spines_internal_topology->edges_count; i++) {
+    for (unsigned i = 0; i < cfg->spines_internal_topology->edges_count; i++)
+    {
         printf("  Edge %u: id1=%u, id2=%u, cost=%u\n",
-                i,
-                cfg->spines_internal_topology->edges[i].id1,
-                cfg->spines_internal_topology->edges[i].id2,
-                cfg->spines_internal_topology->edges[i].cost);
+               i,
+               cfg->spines_internal_topology->edges[i].id1,
+               cfg->spines_internal_topology->edges[i].id2,
+               cfg->spines_internal_topology->edges[i].cost);
     }
 
     // DEBUG PRINT
     printf("external topology: hosts_count=%u, edges_count=%u\n",
-        cfg->spines_external_topology->hosts_count,
-        cfg->spines_external_topology->edges_count);
-    
+           cfg->spines_external_topology->hosts_count,
+           cfg->spines_external_topology->edges_count);
+
     // Print hosts
-    for (unsigned i = 0; i < cfg->spines_external_topology->hosts_count; i++) {
+    for (unsigned i = 0; i < cfg->spines_external_topology->hosts_count; i++)
+    {
         printf("  Host %u: name=%s, id=%u\n",
-                i, cfg->spines_external_topology->hosts[i].name,
-                cfg->spines_external_topology->hosts[i].id);
+               i, cfg->spines_external_topology->hosts[i].name,
+               cfg->spines_external_topology->hosts[i].id);
     }
-    
+
     // Print edges
-    for (unsigned i = 0; i < cfg->spines_external_topology->edges_count; i++) {
+    for (unsigned i = 0; i < cfg->spines_external_topology->edges_count; i++)
+    {
         printf("  Edge %u: id1=%u, id2=%u, cost=%u\n",
-                i,
-                cfg->spines_external_topology->edges[i].id1,
-                cfg->spines_external_topology->edges[i].id2,
-                cfg->spines_external_topology->edges[i].cost);
+               i,
+               cfg->spines_external_topology->edges[i].id1,
+               cfg->spines_external_topology->edges[i].id2,
+               cfg->spines_external_topology->edges[i].cost);
     }
 
     printf("Topology generation complete.\n");

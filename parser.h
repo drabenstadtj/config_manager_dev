@@ -15,6 +15,7 @@ struct host
     const char *name;
     const char *ip;
     const char *permanent_key_location;
+    const char *permanent_public_key;
     unsigned int runs_spines_internal;
     unsigned int runs_spines_external;
 
@@ -33,7 +34,6 @@ struct replica
     const char *spines_external_daemon;
 
     // Required but will be generated later
-    const char *tpm_public_key;
     const char *instance_public_key;
     const char *encrypted_instance_private_key;
     const char *encrypted_prime_threshold_key_share;
@@ -42,7 +42,7 @@ struct replica
 
 struct topology_host
 {
-    const char *name; 
+    const char *name;
     unsigned id;
 };
 
@@ -100,7 +100,7 @@ void free_yaml_config(struct config **cfg);
 // Function(s) for generating topology
 int generate_topology(struct config *cfg);
 
-// Functions for printing the yaml 
+// Functions for printing the yaml
 void print_service_keys(const struct service_keys *keys, int indent);
 void print_host(const struct host *h, int indent);
 void print_replica(const struct replica *r, int indent);

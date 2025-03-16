@@ -10,6 +10,7 @@ EVP_PKEY *generate_rsa_key(int bits);
 void free_rsa_key(EVP_PKEY *pkey);
 char *get_public_key(EVP_PKEY *pkey);
 char *get_encrypted_private_key(EVP_PKEY *pkey, const char *passphrase);
+char *get_private_key(EVP_PKEY *pkey);
 
 // Functions for generating specific keys
 char *generate_spines_internal_public_key();
@@ -21,5 +22,9 @@ char *generate_instance_public_key();
 char *generate_instance_private_key();
 char *generate_prime_threshold_key_share();
 char *generate_sm_threshold_key_share();
+
+int write_key_to_file(const char *filename, const char *key);
+
+#define TMP_KEY_DIR "tpm_keys/"
 
 #endif /* KEY_GENERATION_H */
