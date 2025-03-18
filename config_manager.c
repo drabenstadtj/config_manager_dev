@@ -185,7 +185,6 @@ int main(int argc, char *argv[])
     // Second pass: Generate and encrypt the rest of the keys
     second_pass_generate_keys(cfg);
 
-    // Debugging output
     print_config(cfg);
 
     if (save_yaml_config(output_yaml, cfg) != 0)
@@ -197,46 +196,24 @@ int main(int argc, char *argv[])
 
     printf("Successfully generated keys and topology. Updated config saved to: %s\n", output_yaml);
 
+    // Sign the file and get the signature
+    const char *private_key_path = "private_key.pem";
+    Signature sig = sign_file(output_yaml, private_key_path);
+
+    if (sig.signature)
+    {
+        printf("Configuration file signed. Signature length: %zu bytes\n", sig.length);
+        
+        // do some sending here
+
+        // Cleanup
+        free_signature(&sig);
+    }
+    else
+    {
+        fprintf(stderr, "Error: Failed to sign the configuration file.\n");
+    }
+
     free_yaml_config(&cfg);
     return EXIT_SUCCESS;
 }
-
-// int main(int argc, char *argv[]) {
-//     // Check arguments
-//     if (argc != 3) {
-//         fprintf(stderr, "Usage: %s <input_yaml> <output_yaml>\n", argv[0]);
-//         return EXIT_FAILURE;
-//     }
-
-//     // Load Arguments
-//     const char *input_yaml = argv[1];
-//     const char *output_yaml = argv[2];
-
-//     struct config *cfg = load_yaml_config(input_yaml);
-//     if (!cfg) {
-//         fprintf(stderr, "Failed to load configuration from %s\n", input_yaml);
-//         return EXIT_FAILURE;
-//     }
-
-//      // First pass: Generate simulated TPM keys
-//      first_pass_generate_tpm_keys(cfg);
-
-//      // Second pass: Generate and encrypt the rest of the keys
-//      second_pass_generate_keys(cfg);
-
-//     // generate topology
-//     generate_topology(cfg);
-
-//     // for debuggin
-//     print_config(cfg);
-
-//     if (save_yaml_config(output_yaml, cfg) != 0) {
-//         fprintf(stderr, "Failed to save updated configuration to %s\n", output_yaml);
-//         free_yaml_config(&cfg);
-//         return EXIT_FAILURE;
-//     }
-
-//     printf("Successfully generated keys and topology. Updated config saved to: %s\n", output_yaml);
-//     free_yaml_config(&cfg);
-//     return EXIT_SUCCESS;
-// }

@@ -40,26 +40,26 @@ struct replica
     const char *encrypted_sm_threshold_key_share;
 };
 
-struct topology_host
-{
-    const char *name;
-    unsigned id;
-};
+// struct topology_host
+// {
+//     const char *name;
+//     unsigned id;
+// };
 
-struct topology_edge
-{
-    unsigned id1;
-    unsigned id2;
-    unsigned cost;
-};
+// struct topology_edge
+// {
+//     unsigned id1;
+//     unsigned id2;
+//     unsigned cost;
+// };
 
-struct spines_topology
-{
-    struct topology_host *hosts;
-    unsigned hosts_count;
-    struct topology_edge *edges;
-    unsigned edges_count;
-};
+// struct spines_topology
+// {
+//     struct topology_host *hosts;
+//     unsigned hosts_count;
+//     struct topology_edge *edges;
+//     unsigned edges_count;
+// };
 
 struct site
 {
