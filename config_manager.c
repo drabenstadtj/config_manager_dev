@@ -3,6 +3,7 @@
 #include <string.h>
 #include "parser.h"
 #include "key_generation.h"
+// #include "tc_wrapper.h"
 
 #define TMP_KEY_DIR "tpm_keys/"
 
@@ -203,8 +204,14 @@ int main(int argc, char *argv[])
     if (sig.signature)
     {
         printf("Configuration file signed. Signature length: %zu bytes\n", sig.length);
-        
+        printf("Signature: %s\n", sig.signature);
+
         // do some sending here
+
+        if (verify_signature(output_yaml, "public_key.pem", sig.signature, sig.length) != 0)
+        {
+            printf("Failed to verify signature.");
+        };
 
         // Cleanup
         free_signature(&sig);

@@ -6,7 +6,8 @@
 #include <stdint.h>
 
 // Struct to hold the signature and its length
-typedef struct {
+typedef struct
+{
     unsigned char *signature;
     size_t length;
 } Signature;

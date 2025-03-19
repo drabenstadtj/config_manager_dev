@@ -200,9 +200,11 @@ int write_key_to_file(const char *filename, const char *key)
 }
 
 // Function to read a file into a buffer
-unsigned char *read_file(const char *filename, size_t *length) {
+unsigned char *read_file(const char *filename, size_t *length)
+{
     FILE *file = fopen(filename, "rb");
-    if (!file) {
+    if (!file)
+    {
         perror("Error opening file");
         return NULL;
     }
@@ -212,7 +214,8 @@ unsigned char *read_file(const char *filename, size_t *length) {
     rewind(file);
 
     unsigned char *buffer = malloc(*length);
-    if (!buffer) {
+    if (!buffer)
+    {
         perror("Memory allocation failed");
         fclose(file);
         return NULL;
@@ -224,19 +227,22 @@ unsigned char *read_file(const char *filename, size_t *length) {
 }
 
 // Function to sign a file and return a SignatureResult object
-Signature sign_file(const char *file_path, const char *priv_key_path) {
-    Signature result = {NULL, 0};  // Initialize result
+Signature sign_file(const char *file_path, const char *priv_key_path)
+{
+    Signature result = {NULL, 0}; // Initialize result
 
     // Read the file into memory
     size_t file_len;
     unsigned char *file_data = read_file(file_path, &file_len);
-    if (!file_data) {
+    if (!file_data)
+    {
         return result;
     }
 
     // Load private key
     FILE *key_file = fopen(priv_key_path, "r");
-    if (!key_file) {
+    if (!key_file)
+    {
         perror("Error opening private key file");
         free(file_data);
         return result;
@@ -244,7 +250,8 @@ Signature sign_file(const char *file_path, const char *priv_key_path) {
 
     EVP_PKEY *priv_key = PEM_read_PrivateKey(key_file, NULL, NULL, NULL);
     fclose(key_file);
-    if (!priv_key) {
+    if (!priv_key)
+    {
         ERR_print_errors_fp(stderr);
         free(file_data);
         return result;
@@ -252,7 +259,8 @@ Signature sign_file(const char *file_path, const char *priv_key_path) {
 
     // Create signing context
     EVP_MD_CTX *md_ctx = EVP_MD_CTX_new();
-    if (!md_ctx) {
+    if (!md_ctx)
+    {
         perror("EVP_MD_CTX_new failed");
         EVP_PKEY_free(priv_key);
         free(file_data);
@@ -260,7 +268,8 @@ Signature sign_file(const char *file_path, const char *priv_key_path) {
     }
 
     // Initialize signing with SHA-256
-    if (EVP_DigestSignInit(md_ctx, NULL, EVP_sha256(), NULL, priv_key) != 1) {
+    if (EVP_DigestSignInit(md_ctx, NULL, EVP_sha256(), NULL, priv_key) != 1)
+    {
         ERR_print_errors_fp(stderr);
         EVP_MD_CTX_free(md_ctx);
         EVP_PKEY_free(priv_key);
@@ -269,7 +278,8 @@ Signature sign_file(const char *file_path, const char *priv_key_path) {
     }
 
     // Update the digest with file data
-    if (EVP_DigestSignUpdate(md_ctx, file_data, file_len) != 1) {
+    if (EVP_DigestSignUpdate(md_ctx, file_data, file_len) != 1)
+    {
         ERR_print_errors_fp(stderr);
         EVP_MD_CTX_free(md_ctx);
         EVP_PKEY_free(priv_key);
@@ -279,7 +289,8 @@ Signature sign_file(const char *file_path, const char *priv_key_path) {
 
     // Get the required size for the signature
     size_t sig_len = 0;
-    if (EVP_DigestSignFinal(md_ctx, NULL, &sig_len) != 1) {
+    if (EVP_DigestSignFinal(md_ctx, NULL, &sig_len) != 1)
+    {
         ERR_print_errors_fp(stderr);
         EVP_MD_CTX_free(md_ctx);
         EVP_PKEY_free(priv_key);
@@ -289,7 +300,8 @@ Signature sign_file(const char *file_path, const char *priv_key_path) {
 
     // Allocate memory for the signature
     unsigned char *signature = malloc(sig_len);
-    if (!signature) {
+    if (!signature)
+    {
         perror("Memory allocation failed");
         EVP_MD_CTX_free(md_ctx);
         EVP_PKEY_free(priv_key);
@@ -298,7 +310,8 @@ Signature sign_file(const char *file_path, const char *priv_key_path) {
     }
 
     // Generate the actual signature
-    if (EVP_DigestSignFinal(md_ctx, signature, &sig_len) != 1) {
+    if (EVP_DigestSignFinal(md_ctx, signature, &sig_len) != 1)
+    {
         ERR_print_errors_fp(stderr);
         free(signature);
         EVP_MD_CTX_free(md_ctx);
@@ -318,15 +331,18 @@ Signature sign_file(const char *file_path, const char *priv_key_path) {
 }
 
 // Function to verify a received signature
-int verify_signature(const char *file_path, const char *pub_key_path, const unsigned char *signature, size_t sig_len) {
+int verify_signature(const char *file_path, const char *pub_key_path, const unsigned char *signature, size_t sig_len)
+{
     size_t file_len;
     unsigned char *file_data = read_file(file_path, &file_len);
-    if (!file_data) {
+    if (!file_data)
+    {
         return 1;
     }
 
     FILE *key_file = fopen(pub_key_path, "r");
-    if (!key_file) {
+    if (!key_file)
+    {
         perror("Error opening public key file");
         free(file_data);
         return 1;
@@ -334,21 +350,24 @@ int verify_signature(const char *file_path, const char *pub_key_path, const unsi
 
     EVP_PKEY *pub_key = PEM_read_PUBKEY(key_file, NULL, NULL, NULL);
     fclose(key_file);
-    if (!pub_key) {
+    if (!pub_key)
+    {
         ERR_print_errors_fp(stderr);
         free(file_data);
         return 1;
     }
 
     EVP_MD_CTX *md_ctx = EVP_MD_CTX_new();
-    if (!md_ctx) {
+    if (!md_ctx)
+    {
         perror("EVP_MD_CTX_new failed");
         EVP_PKEY_free(pub_key);
         free(file_data);
         return 1;
     }
 
-    if (EVP_DigestVerifyInit(md_ctx, NULL, EVP_sha256(), NULL, pub_key) != 1) {
+    if (EVP_DigestVerifyInit(md_ctx, NULL, EVP_sha256(), NULL, pub_key) != 1)
+    {
         ERR_print_errors_fp(stderr);
         EVP_MD_CTX_free(md_ctx);
         EVP_PKEY_free(pub_key);
@@ -356,7 +375,8 @@ int verify_signature(const char *file_path, const char *pub_key_path, const unsi
         return 1;
     }
 
-    if (EVP_DigestVerifyUpdate(md_ctx, file_data, file_len) != 1) {
+    if (EVP_DigestVerifyUpdate(md_ctx, file_data, file_len) != 1)
+    {
         ERR_print_errors_fp(stderr);
         EVP_MD_CTX_free(md_ctx);
         EVP_PKEY_free(pub_key);
@@ -365,9 +385,12 @@ int verify_signature(const char *file_path, const char *pub_key_path, const unsi
     }
 
     int result = EVP_DigestVerifyFinal(md_ctx, signature, sig_len);
-    if (result == 1) {
+    if (result == 1)
+    {
         printf("Signature is valid.\n");
-    } else {
+    }
+    else
+    {
         printf("Signature is INVALID.\n");
     }
 
@@ -378,8 +401,10 @@ int verify_signature(const char *file_path, const char *pub_key_path, const unsi
 }
 
 // Free allocated memory for signature
-void free_signature(Signature *sig) {
-    if (sig && sig->signature) {
+void free_signature(Signature *sig)
+{
+    if (sig && sig->signature)
+    {
         free(sig->signature);
         sig->signature = NULL;
         sig->length = 0;
